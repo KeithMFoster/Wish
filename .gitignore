@@ -8,4 +8,5 @@
 secret.py
 *.pyc
 *.csv
+*.json
 .*
