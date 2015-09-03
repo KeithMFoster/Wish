@@ -76,10 +76,9 @@ def get_unsent_orders(conn):
 def main():
     host = DATABASE['host']
     user = DATABASE['user']
-    name = DATABASE['name']
     passwd = DATABASE['passwd']
 
-    conn = MySQLdb.Connect(host=host, db=name, passwd=passwd,
+    conn = MySQLdb.Connect(host=host, db='redrocket', passwd=passwd,
                             user=user, cursorclass=MySQLdb.cursors.DictCursor)
 
     results = get_unsent_orders(conn)
