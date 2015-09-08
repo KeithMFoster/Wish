@@ -97,16 +97,17 @@ def update_database(connection, wish_child):
             print sql
             trans.rollback()
 
-
-
-
-def process_wish_results(connection, sequence):
-    global error_log_file_name
-
+def read_json_files(connection, sequence):
     current_json_file = "wish_result_file_{}.json".format(sequence)
-    with open(current_json_file, "r") as f:
-        wish_data = json.load(f)
-
+    # increment the json file sequence for next recursive call
+    try:
+        # try to open the file to see if it exists
+        f = open(current_json_file, "r")
+    except IOError:
+        # this will end the recursive process
+        return
+    # turn the json into a python data structure
+    wish_data = json.load(f)
     # data is an array that contains rows of products. each product
     for row in wish_data['data']:
 
@@ -135,6 +136,18 @@ def process_wish_results(connection, sequence):
             }
 
             update_database(connection, wish_child)
+    return read_json_files(connection, sequence + 1)
+
+def get_json_files(sequence):
+    # this function retrieves all the json files from wish
+    # until there is not "paging" key meaning ther are no
+    # more files to retrieve
+    global error_log_file_name
+     # try to open the file to see if it exists
+    current_json_file = "wish_result_file_{}.json".format(sequence)
+    f = open(current_json_file, "r")
+    # turn the json into a python data structure
+    wish_data = json.load(f)
 
     try:
         next_file = wish_data['paging']
@@ -146,10 +159,11 @@ def process_wish_results(connection, sequence):
         with open(current_json_file, "w") as f:
             f.write(r.content)
 
-        process_wish_results(connection, sequence)
+        get_json_files(sequence)
 
 
     except KeyError:
+        # this is the case that ends the recursive process
 
         error = 'no next file'
         error += str(sys.exc_info()[0])
@@ -182,7 +196,11 @@ def get_products_to_check():
                             username=DATABASE['username'], password=DATABASE['password'],
                             host=DATABASE['host']))
     connection = engine.connect()
-    process_wish_results(connection, sequence)
+    get_json_files(sequence)
+
+    # read the json files we retrieved and start with the
+    # first file
+    read_json_files(connection, 1)
     connection.close()
 
     print 'all done'
