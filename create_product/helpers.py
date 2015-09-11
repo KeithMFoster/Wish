@@ -8,7 +8,6 @@ from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
-from secret import EMAIL
 import csv
 import cStringIO
 import codecs
@@ -52,8 +51,8 @@ def send_email_with_attachment(*fnames):
     # recipients = ['mouzaspg@redrocketcorp.com', 'paul.mouzas@gmail.com']
     emailfrom = 'channelserver@redrocketcorp.com'
     emailto = ", ".join(recipients)
-    username = EMAIL['username']
-    password = EMAIL['password']
+    username = os.environ.get("GMAIL_USER")
+    password = os.environ.get("GMAIL_PASSWD")
 
     msg = MIMEMultipart()
     msg["From"] = emailfrom
