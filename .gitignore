@@ -10,3 +10,5 @@ secret.py
 *.csv
 *.json
 .*
+
+errorlog
