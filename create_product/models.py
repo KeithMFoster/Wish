@@ -1,12 +1,16 @@
+import os
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Integer, Column, String, ForeignKey, DateTime, Boolean, Float
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
-from secret import DATABASE
+
+username = os.environ.get("MYSQLDB_USER")
+passwd = os.environ.get("MYSQLDB_PASSWD")
+host = os.environ.get("MYSQLDB_HOST")
 
 
 engine = create_engine("mysql://{username}:{password}@{host}/redrocket?charset=utf8".format(
-                        username=DATABASE['username'], host=DATABASE['host'], password=DATABASE['password']))
+                        username=username, host=host, password=passwd))
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
