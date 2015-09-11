@@ -13,7 +13,6 @@ a parent's children in the database to see if I have enough information to creat
 
 import csv
 import glob
-import wish_settings
 import requests
 import json
 import argparse
