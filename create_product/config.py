@@ -1,8 +1,13 @@
 from sqlalchemy import create_engine
-from secret import DATABASE
+import os
+
+
+username = os.getenv("MYSQLDB_USER")
+password = os.getenv("MYSQLDB_PASSWD")
+host = os.getenv("MYSQLDB_HOST")
 
 engine = create_engine("mysql://{username}:{password}@{host}/feedersettings?charset=utf8".format(
-                        username=DATABASE['username'], host=DATABASE['host'], password=DATABASE['password']))
+                        username=username, host=host, password=password))
 connection = engine.connect()
 
 sql = "select * from feedersettings.threshold_settings where channel = 'Wish' and storefront = 'old_glory';"
