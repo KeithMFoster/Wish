@@ -48,7 +48,7 @@ def send_email_with_attachment(*fnames):
     :return:
     '''
     recipients = ['marinv@imerchandise.com', 'mouzaspg@redrocketcorp.com']
-    # recipients = ['mouzaspg@redrocketcorp.com', 'paul.mouzas@gmail.com']
+    recipients = ['mouzaspg@redrocketcorp.com', 'paul.mouzas@gmail.com']
     emailfrom = 'channelserver@redrocketcorp.com'
     emailto = ", ".join(recipients)
     username = os.environ.get("GMAIL_USER")

@@ -75,16 +75,17 @@ def write_to_wish_template(filename, product_create_data, variation_create_data)
 # TODO log products that might not have been created on wish
 
 
-def get_skus(fname):
-    '''
-    :return: a list of all the rows of the first column of the csv files except the first
-    parses through a csv and returns the first column of data as a list. Ignores the first field.
-    '''
-    with open(fname, 'rU') as f:
-        reader = csv.reader(f)
-        # strip of any whitespace in case this is a tab separated value file
-        skus = [row[0].strip() for row in reader]
-    return set(skus[1:])
+def get_skus():
+    session = Session()
+    sql = (
+        "select p.sku from producttable p "
+        "join product_tracking_wish w on p.sku = w.sku "
+        "join wish_vendors wv on wv.vendor = p.suppliername;"
+    )
+    results = session.execute(sql)
+    session.close()
+    results = [row[0] for row in results.fetchall()]
+    return results
 
 def get_high_child_price(parent_sku):
     '''
@@ -576,12 +577,10 @@ def get_exempt_status(sku):
 
 def main():
     # if no argument is provided, make this the default file
-    if len(sys.argv) == 1:
-        fname = 'V:\NewOGproducts.csv'
-    elif len(sys.argv) == 2:
-        fname = sys.argv[1]
 
-    skus = get_skus(fname)
+    skus = get_skus()
+    print skus
+    sys.exit(0)
 
     SUCCESS_TEMPLATE = time.strftime("%Y%m%d-%H%M%S") + '_successful_uploads.csv'
     FAILED_TEMPLATE = time.strftime("%Y%m%d-%H%M%S") + '_failed_uploads.csv'
