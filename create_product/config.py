@@ -22,4 +22,5 @@ R1_LIMIT = row['R1_Limit']
 connection.close()
 
 WISH_SHIPPING = 5.95
-WISH_KEY = "JHBia2RmMiQxMDAkTjRid1BrY0lvYlQydnRkNnI1VlNTZyRwWWFqVlk3Qy9TRFpURlUwTHpHWGt1eEtZZTg="
+OG_WISH_KEY = os.getenv("OG_WISH_KEY")
+AW_WISH_KEY = os.getenv("AW_WISH_KEY")

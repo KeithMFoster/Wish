@@ -353,15 +353,16 @@ def is_lone_sku(sku):
     return result.parentchild == 'lone'
 
 def get_color(child_sku):
-    color_query = (        "SELECT ct.wishcolor"
-        " FROM   redrocket.productfeatures pf"
-               " INNER JOIN redrocket.featuretable ft"
-                       " ON pf.featureid = ft.feature_id"
-               " INNER JOIN redrocket.colortable ct"
-                       " ON ft.feature_description = ct.bizcolor"
-        " WHERE  ft.product_feature_type_id = 'color'"
-        " AND pf.sku = :child_sku;"
-        )
+    # color_query = (        "SELECT ct.wishcolor"
+    #     " FROM   redrocket.productfeatures pf"
+    #            " INNER JOIN redrocket.featuretable ft"
+    #                    " ON pf.featureid = ft.feature_id"
+    #            " INNER JOIN redrocket.colortable ct"
+    #                    " ON ft.feature_description = ct.bizcolor"
+    #     " WHERE  ft.product_feature_type_id = 'color'"
+    #     " AND pf.sku = :child_sku;"
+    #     )
+    color_query = "SELECT color from producttable where sku = :sku;"
     session = Session()
     results = session.execute(text(color_query), {'child_sku': child_sku})
     session.close()
