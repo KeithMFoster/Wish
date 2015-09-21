@@ -89,10 +89,16 @@ def main():
         trackingcode = row['trackingcode']
         sku = row['sku']
         external_id = row['external_id']
-        if carrier == '_NA_':
+        if carrier.upper() == '_NA_':
             wish_tracking_provider = 'UPS'
+        elif carrier.upper() == 'UPS':
+            wish_tracking_provider = 'UPS'
+        elif carrier.upper() == 'USPS':
+            wish_tracking_provider == 'USPS'
+        elif carrier.upper() == 'UPSMI':
+            wish_tracking_provider = 'UPSMI'
         else:
-            wish_tracking_provider = 'USPS'
+            wish_tracking_provider = 'UPSMI'
 
 
         wish_tracking_number = trackingcode
