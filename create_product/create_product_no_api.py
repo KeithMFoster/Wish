@@ -581,7 +581,6 @@ def main():
         fname = 'V:\NewOGproducts.csv'
     elif len(sys.argv) == 2:
         fname = sys.argv[1]
-    if len(sys.
 
     skus = get_skus(fname)
 
