@@ -25,7 +25,7 @@ import sys
 import os
 import io
 from models import Product, Session, Pricing, WishTag, WishTracking, Exempt
-from config import C1_ENABLED, C1_LIMIT, R1_ENABLED, R1_LIMIT, WISH_KEY, WISH_SHIPPING
+from config import C1_ENABLED, C1_LIMIT, R1_ENABLED, R1_LIMIT, WISH_SHIPPING
 
 
 # this will be a csv file of failed orders
@@ -169,6 +169,7 @@ def get_size_chart(parent_sku):
             return 'http://images.oldglory.com/wish/{}'.format(result.wish_sizeimage)
 
 def get_brand(parent_sku):
+    global storefront
     session = Session()
     sql = (
         "select if((ct.category_description = '' or ct.category_description is null), if(p.producttype = 'FINISHED_GOOD', 'Old Glory','Tees Plus'), ct.category_description) as 'Brand'"
@@ -178,7 +179,7 @@ def get_brand(parent_sku):
         " inner join redrocket.categorytable ctp on ct.category_parent = ctp.category_id"
         " join redrocket.producttable p on p.sku = pt.sku"
 
-        " where pt.storefront = 'old_glory'"
+        " where pt.storefront = :storefront"
         " and pt.parentchild <> 'parent'"
         " and (ct.category_id like 'ent_%%' or ct.category_id like 'mus_%%' or ct.category_id like 'sp_%%' or ct.category_id like 'br_%%' or ct.category_id like 'ga_%%' )"
         # only lone or child skus only.
@@ -186,7 +187,7 @@ def get_brand(parent_sku):
     )
     string = parent_sku + '-%%'
 
-    results = session.execute(text(sql), {'string': string})
+    results = session.execute(text(sql), {'string': string, 'storefront': storefront})
     result = results.fetchone()
     session.close()
     if result is not None:
@@ -251,9 +252,12 @@ def get_product_data(parent_sku):
 
     # get the tags
     #
-    session = Session()
-    wishtag = session.query(WishTag).get(product.primaryproductcategory)
-    session.close()
+    if product.primaryproductcategory:
+        session = Session()
+        wishtag = session.query(WishTag).get(product.primaryproductcategory)
+        session.close()
+    else:
+        wishtag = None
 
     # tags starts out as a list of tags
     if wishtag:
@@ -293,6 +297,7 @@ def get_product_data(parent_sku):
     return product_create_data
 
 def create_product(product_data):
+    global wishkey
     # this creates a new product on wish with the following data:
     # name, description, tags, sku, inventory, price, shipping, parent sku, main image, extra images
     # if successful, it will return the newly created wish id from the response
@@ -306,7 +311,7 @@ def create_product(product_data):
 
     # wish needs the api key as a paramater
     print product_data
-    product_data.update({'key': WISH_KEY})
+    product_data.update({'key': wishkey})
 
     for i in range(3):
         try:
@@ -362,7 +367,7 @@ def get_color(child_sku):
     #     " WHERE  ft.product_feature_type_id = 'color'"
     #     " AND pf.sku = :child_sku;"
     #     )
-    color_query = "SELECT color from producttable where sku = :sku;"
+    color_query = "SELECT color from producttable where sku = :child_sku;"
     session = Session()
     results = session.execute(text(color_query), {'child_sku': child_sku})
     session.close()
@@ -372,7 +377,7 @@ def get_color(child_sku):
     if result is None:
         return result
     # we found a record so return the color
-    return result.wishcolor
+    return result.color
 
 def get_child_skus(parent_sku):
     """ Querys the producttable and returns the child skus for the parent_sku """
@@ -455,10 +460,11 @@ def update_database(product_data, variation_data):
     session.close()
         
 def variant_is_on_wish(child_sku):
+    global wishkey
     for i in range(3):
         try:
             r = requests.get('https://merchant.wish.com/api/v1/variant',
-                         params={'key': WISH_KEY, 'sku': child_sku})
+                         params={'key': wishkey, 'sku': child_sku})
     
         except ConnectionError:
             if i == 2:
@@ -471,10 +477,11 @@ def variant_is_on_wish(child_sku):
         return True
 
 def product_is_on_wish(parent_sku):
+    global wishkey
     for i in range(3):
         try:
             r = requests.get('https://merchant.wish.com/api/v1/product',
-                         params={'key': WISH_KEY, 'parent_sku': parent_sku})
+                         params={'key': wishkey, 'parent_sku': parent_sku})
     
         except ConnectionError:
             if i == 2:
@@ -524,7 +531,8 @@ def create_variation(variation_data):
     # sku, color, size, inventory, price, shipping
 
     # wish need the api key as a paramter
-    variation_data.update({'key': WISH_KEY})
+    global wishkey
+    variation_data.update({'key': wishkey})
     
 
     for i in range(3):
@@ -576,13 +584,26 @@ def get_exempt_status(sku):
         True
 
 def main():
+    global storefront
+    global wishkey
     # if no argument is provided, make this the default file
-    if len(sys.argv) == 1:
-        fname = 'V:\NewOGproducts.csv'
-    elif len(sys.argv) == 2:
-        fname = sys.argv[1]
 
-    skus = get_skus(fname)
+    if len(sys.argv) == 3:
+        newproductsfname = sys.argv[1]
+        storefront = sys.argv[2]
+        if storefront == 'Old_Glory':
+            wishkey = os.environ.get("OG_WISH_KEY")
+        elif storefront == 'Animalworld':
+            wishkey = os.environ.get("AW_WISH_KEY")
+        else:
+            print 'not a valid storefront. choose Old_Glory or Animalworld'
+            sys.exit(1)
+        
+    else:
+        print "usage: python create_product.py [filename] [storefront]"
+        sys.exit(1)
+
+    skus = get_skus(newproductsfname)
 
     SUCCESS_TEMPLATE = time.strftime("%Y%m%d-%H%M%S") + '_successful_uploads.csv'
     FAILED_TEMPLATE = time.strftime("%Y%m%d-%H%M%S") + '_failed_uploads.csv'
