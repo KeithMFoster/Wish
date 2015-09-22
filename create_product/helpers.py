@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 import csv
 import cStringIO
 import codecs
+from config import EMAILS
 
 class DictUnicodeWriter(object):
 
@@ -47,8 +48,7 @@ def send_email_with_attachment(*fnames):
     :param fileToSend: file object
     :return:
     '''
-    recipients = ['marinv@imerchandise.com', 'mouzaspg@redrocketcorp.com']
-    recipients = ['mouzaspg@redrocketcorp.com', 'paul.mouzas@gmail.com']
+    recipients = EMAILS
     emailfrom = 'channelserver@redrocketcorp.com'
     emailto = ", ".join(recipients)
     username = os.environ.get("GMAIL_USER")
