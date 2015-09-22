@@ -1,5 +1,5 @@
-from config import WISH_KEY
 import os
+import sys
 import MySQLdb
 import requests
 from pprint import pprint
@@ -74,6 +74,13 @@ def get_unsent_orders(conn):
     return results
 
 def main():
+    if len(sys.argv) == 2:
+        storefront = sys.argv[1]
+        if storefront.lower() == 'old_glory':
+            wishkey = os.environ.get("OG_WISH_KEY")
+        elif storefront.lower() == 'animalworld':
+            wishkey = os.envrion.get("AW_WISH_KEY")
+
     host = os.environ.get("MYSQLDB_HOST")
     user = os.environ.get("MYSQLDB_USER")
     passwd = os.environ.get("MYSQLDB_PASSWD")
@@ -118,7 +125,7 @@ def main():
         wish_tracking_number = trackingcode
         wish_id = orderitemid
         wish_tracking_data = {
-                'key': WISH_KEY,
+                'key': wishkey,
                 'id': wish_id,
                 'tracking_number': wish_tracking_number,
                 'tracking_provider': wish_tracking_provider
