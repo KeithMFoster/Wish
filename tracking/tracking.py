@@ -1,6 +1,7 @@
 import os
 import sys
 import MySQLdb
+import MySQLdb.cursors
 import requests
 from pprint import pprint
 
