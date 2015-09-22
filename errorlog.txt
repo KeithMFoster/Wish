@@ -1,0 +1,10 @@
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): merchant.wish.com
+DEBUG:requests.packages.urllib3.connectionpool:"POST /api/v1/variant/update-inventory HTTP/1.1" 200 33
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): merchant.wish.com
+DEBUG:requests.packages.urllib3.connectionpool:"POST /api/v1/variant/update-inventory HTTP/1.1" 200 33
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): merchant.wish.com
+DEBUG:requests.packages.urllib3.connectionpool:"POST /api/v1/variant/update-inventory HTTP/1.1" 200 33
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): merchant.wish.com
+DEBUG:requests.packages.urllib3.connectionpool:"POST /api/v1/variant/update-inventory HTTP/1.1" 200 33
+INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): merchant.wish.com
+DEBUG:requests.packages.urllib3.connectionpool:"POST /api/v1/variant/update-inventory HTTP/1.1" 200 33
