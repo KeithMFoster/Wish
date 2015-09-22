@@ -1,5 +1,5 @@
 from config import WISH_KEY
-from secret import DATABASE
+import os
 import MySQLdb
 import requests
 from pprint import pprint
@@ -58,7 +58,7 @@ def get_unsent_orders(conn):
 
     fulfill_one_url = "https://merchant.wish.com/api/v1/order/fulfill-one"
     sql = (
-        "SELECT s.sku, s.external_id, s.orderitemid, t.trackingcode, t.carrier FROM tracking_table t"
+        "SELECT s.sku, s.external_id, s.orderitemid, t.trackingcode, t.carrier, t.shipment_method FROM tracking_table t"
         " JOIN salesordertable s on s.external_id = t.external_id"
         " WHERE t.Sales_Channel = 'WISH_SALES_CHANNEL'"
         # " and t.sent_tracking = 0 and s.storefront = %(storefront)s LIMIT 10;"
@@ -74,9 +74,9 @@ def get_unsent_orders(conn):
     return results
 
 def main():
-    host = DATABASE['host']
-    user = DATABASE['user']
-    passwd = DATABASE['passwd']
+    host = os.environ.get("MYSQLDB_HOST")
+    user = os.environ.get("MYSQLDB_USER")
+    passwd = os.environ.get("MYSQLDB_PASSWD")
 
     conn = MySQLdb.Connect(host=host, db='redrocket', passwd=passwd,
                             user=user, cursorclass=MySQLdb.cursors.DictCursor)
@@ -85,20 +85,34 @@ def main():
 
     for row in results:
         carrier = row['carrier']
+        shipment_method = row['shipment_method']
         orderitemid = row['orderitemid']
         trackingcode = row['trackingcode']
         sku = row['sku']
         external_id = row['external_id']
-        if carrier.upper() == '_NA_':
+
+        if carrier.upper() == '_NA_' and shipment_method.upper() == 'INTERNATIONAL':
+            # ignore these for now
+            continue
+        elif carrier.upper() == '_NA_':
+
             wish_tracking_provider = 'UPS'
+
         elif carrier.upper() == 'UPS':
+
             wish_tracking_provider = 'UPS'
+
         elif carrier.upper() == 'USPS':
-            wish_tracking_provider == 'USPS'
+
+            wish_tracking_provider = 'USPS'
+
         elif carrier.upper() == 'UPSMI':
-            wish_tracking_provider = 'UPSMI'
+
+            wish_tracking_provider = 'UPSMailInnovations'
+
         else:
-            wish_tracking_provider = 'UPSMI'
+
+            wish_tracking_provider = 'UPSMailInnovations'
 
 
         wish_tracking_number = trackingcode

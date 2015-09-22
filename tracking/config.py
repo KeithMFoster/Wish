@@ -1,11 +1,12 @@
 import MySQLdb
+import os
 from secret import DATABASE
 
 
 def get_wish_key():
-    host = DATABASE['host']
-    user = DATABASE['user']
-    passwd = DATABASE['passwd']
+    host = os.environ.get("MYSQLDB_HOST")
+    user = os.environ.get("MYSQLDB_USER")
+    passwd = os.environ.get("MYSQLDB_PASSWD")
 
     connection = MySQLdb.Connect(host=host, db='redrocket', passwd=passwd, user=user)
     cursor = connection.cursor()
