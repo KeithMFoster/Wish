@@ -1,9 +1,10 @@
 import requests
 import json
 import glob
+import sys
 import os
 import MySQLdb
-from config import WISH_STOREFRONT, WISH_KEY
+import MySQLdb.cursors
 import io
 from itertools import groupby
 from pprint import pprint
@@ -90,6 +91,7 @@ def UpdateDatabase(connection, child):
         cursor.close()
 
 def ProcessWishOrders(connection, sequence):
+    global storefront
 
     # always start with the file that was requested from the prior request pull.
     with io.open("WishResultFile_{}.json".format(sequence), 'r', encoding="utf8") as f:
@@ -111,7 +113,7 @@ def ProcessWishOrders(connection, sequence):
             # the child keys map to the name of the salesordertable database columns
                 child = {
                     'sku': order_info['sku'],
-                    'storefront': WISH_STOREFRONT,
+                    'storefront': storefront,
                     'sales_channel': 'WISH_SALES_CHANNEL',
                     'wish_order_id': order_info['order_id'],
                     'external_id': order_info['transaction_id'],
@@ -152,6 +154,7 @@ def ProcessWishOrders(connection, sequence):
 
 
 def GetOrdersToCheck():
+    global wishkey
 
     # format the payload selection. Note, we will be using JSON, the xml line is commented out.
     # payload = {
@@ -168,7 +171,7 @@ def GetOrdersToCheck():
     # r = requests.get(url, params=payload)
 
     payload = {
-        'key': WISH_KEY,
+        'key': wishkey,
     }
 
     r = requests.get('https://merchant.wish.com/api/v1/order/get-fulfill', params=payload)
@@ -193,6 +196,21 @@ def GetOrdersToCheck():
 
 
 def main():
+    global storefront
+    global wishkey
+
+    if len(sys.argv) == 2:
+        storefront = sys.argv[1]
+        if storefront == 'Old_Glory':
+            wishkey = os.environ.get("OG_WISH_KEY")
+        elif storefront == 'Animalworld':
+            wishkey == os.envrion.get("AW_WISH_KEY")
+        else:
+            print 'invalid storefront'
+            sys.exit(1)
+    else:
+        print 'USAGE: python wish_orders.py [storefront]'
+        sys.exit(1)
     # remove extra json files from previous run
     RemoveLeftOverFiles()
     # start recursive process
