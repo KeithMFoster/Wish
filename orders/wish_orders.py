@@ -2,7 +2,7 @@ import requests
 import json
 import glob
 import os
-from secret import DATABASE
+import MySQLdb
 from config import WISH_STOREFRONT, WISH_KEY
 import io
 from itertools import groupby
@@ -179,8 +179,11 @@ def GetOrdersToCheck():
 
     # we have the first result file retrieved, now to process the results. At the completion of the
     # process, the recursive routine will start.
-    connection = MySQLdb.Connect(host=DATABASE['host'], user=DATABASE['username'],
-                                passwd=DATABASE['password'], db='redrocket', charset="utf8",
+    host = os.environ.get("MYSQLDB_HOST")
+    user = os.environ.get("MYSQLDB_USER")
+    passwd = os.environ.get("MYSQLDB_PASSWD")
+    connection = MySQLdb.Connect(host=host, user=user,
+                                passwd=passwd, db='redrocket', charset="utf8",
                                 cursorclass=MySQLdb.cursors.DictCursor)
     ProcessWishOrders(connection, sequence)
     connection.close()
