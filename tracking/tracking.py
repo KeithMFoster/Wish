@@ -81,6 +81,9 @@ def main():
             wishkey = os.environ.get("OG_WISH_KEY")
         elif storefront.lower() == 'animalworld':
             wishkey = os.envrion.get("AW_WISH_KEY")
+    else:
+        print 'USAGE: python tracking.py [storefront]'
+        sys.exit(1)
 
     host = os.environ.get("MYSQLDB_HOST")
     user = os.environ.get("MYSQLDB_USER")
