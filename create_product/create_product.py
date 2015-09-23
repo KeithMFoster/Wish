@@ -367,7 +367,15 @@ def get_color(child_sku):
     #     " WHERE  ft.product_feature_type_id = 'color'"
     #     " AND pf.sku = :child_sku;"
     #     )
-    color_query = "SELECT color from producttable where sku = :child_sku;"
+    # color_query = "SELECT color from producttable where sku = :child_sku;"
+    color_query = """SELECT ct.wishcolor
+             FROM   redrocket.productfeatures pf
+                    INNER JOIN redrocket.featuretable ft
+                            ON pf.featureid = ft.feature_id
+                    INNER JOIN redrocket.colortable ct
+                            ON ft.feature_description = ct.bizcolor
+             WHERE  ft.product_feature_type_id = 'color'
+             AND pf.sku = :child_sku;"""
     session = Session()
     results = session.execute(text(color_query), {'child_sku': child_sku})
     session.close()
@@ -377,7 +385,7 @@ def get_color(child_sku):
     if result is None:
         return result
     # we found a record so return the color
-    return result.color
+    return result.wishcolor
 
 def get_child_skus(parent_sku):
     """ Querys the producttable and returns the child skus for the parent_sku """

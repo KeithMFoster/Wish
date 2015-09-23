@@ -25,4 +25,4 @@ WISH_SHIPPING = 5.95
 OG_WISH_KEY = os.getenv("OG_WISH_KEY")
 AW_WISH_KEY = os.getenv("AW_WISH_KEY")
 
-EMAILS = open('emails.txt').readlines()
+EMAILS = [email.strip() for email in open('emails.txt').readlines()]
