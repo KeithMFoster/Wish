@@ -122,23 +122,31 @@ def read_json_files(connection, sequence):
         for variant in variants:
             v = variant['Variant']
             print v
-            wish_child = {
-                "on_wish": 1,
-                "item_marker": randint(1, 99),
-                "parent_sku": parent_sku,
-                "sku": v['sku'],
-                "product_id": v['product_id'],
-                # "price": v.get('price', ''),
-                "enabled": False,
-                # "shipping": v.get('shipping', ''),
-                "inventory": v.get('inventory', '0'),
-                # "shipping_time": v.get('shipping_time', ''),
-                # "id": v['id'],
-                # "msrp": v['msrp'],
-                "name": name,
-            }
+            if int(v['inventory']) >= 4:
 
-            # update_database(connection, wish_child)
+                r = requests.post("https://merchant.wish.com/api/v1/variant/update", data={"enabled": True, 'key': wishkey, 'sku': v['sku']})
+                print r.status_code
+                print r.text
+                if r.status_code == 200:
+                    wish_child = {
+                        "on_wish": 1,
+                        "item_marker": randint(1, 99),
+                        "parent_sku": parent_sku,
+                        "sku": v['sku'],
+                        "product_id": v['product_id'],
+                        # "price": v.get('price', ''),
+                        "enabled": "True",
+                        # "shipping": v.get('shipping', ''),
+                        "inventory": v.get('inventory', '0'),
+                        # "shipping_time": v.get('shipping_time', ''),
+                        # "id": v['id'],
+                        # "msrp": v['msrp'],
+                        "name": name,
+                    }
+                else:
+                    continue
+
+            update_database(connection, wish_child)
     return read_json_files(connection, sequence + 1)
 
 def get_json_files(sequence):
@@ -178,10 +186,7 @@ def get_json_files(sequence):
 
 def get_products_to_check():
     global wishkey
-    # this basically start the recursive process by calling get_json_files
-
-    # removes the old json files
-    remove_json_files()
+    # this basically start the recursive process by calling process_wish_results(sequence)
 
     wish_url = "https://merchant.wish.com/api/v1/product/multi-get"
     payload = {
@@ -199,7 +204,16 @@ def get_products_to_check():
     f = open(current_json_file, "w")
     f.write(r.content)
     f.close()
+    engine = create_engine("mysql://{username}:{password}@{host}/redrocket".format(
+                            username=DATABASE['username'], password=DATABASE['password'],
+                            host=DATABASE['host']))
+    connection = engine.connect()
     get_json_files(sequence)
+
+    # read the json files we retrieved and start with the
+    # first file
+    read_json_files(connection, 1)
+    connection.close()
 
     print 'all done'
 
@@ -227,15 +241,9 @@ def main():
 
     f = open(error_log_file_name, 'w')
     f.close()
-
-    # get_products_to_check()
-
-    engine = create_engine("mysql://{username}:{password}@{host}/redrocket".format(
-                            username=DATABASE['username'], password=DATABASE['password'],
-                            host=DATABASE['host']))
-    connection = engine.connect()
-    read_json_files(connection, 1)
-    connection.close()
+    # remove any old json files hangin around in the directory
+    remove_json_files()
+    get_products_to_check()
 
 if __name__ == '__main__':
 

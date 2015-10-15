@@ -21,22 +21,20 @@ def RemoveLeftOverFiles():
 
 def UpdateDatabase(connection, child):
 
-    if not child['wish_order_id']:
-        return
-
     # is this order item in the salesordertable table?
-    # i include sku just incase this item was already put in there by ofbiz
+    # the external_id and sku uniquely identify the order item
     sql = (
-        "select recnum from redrocket.salesordertable"
-        " where external_id = %(external_id)s and (OrderItemId = %(wish_order_id)s or sku = %(sku)s);"
+        "select recnum from redrocket.sales_order_table"
+        " where external_id = %(external_id)s and sku = %(sku)s;"
     )
     cursor = connection.cursor()
     rowcount = cursor.execute(sql, child)
 
+    print child
     if rowcount == 0:
         # if this external_id is not in salesordertable table, insert the record
         sql = (
-            "INSERT INTO salesordertable"
+            "INSERT INTO sales_order_table"
             " SET sku = %(sku)s,"
             " storefront = %(storefront)s,"
             " sales_channel = %(sales_channel)s,"
@@ -64,7 +62,7 @@ def UpdateDatabase(connection, child):
         # we found the external id and order item (or sku). insert or update the record depending on whether or not the wish_order_id is already
         # in there
         sql = (
-            "UPDATE salesordertable"
+            "UPDATE sales_order_table"
             " SET sku = %(sku)s,"
             " storefront = %(storefront)s,"
             " sales_channel = %(sales_channel)s,"
@@ -82,7 +80,7 @@ def UpdateDatabase(connection, child):
             " postal_code = %(postal_code)s,"
             " order_line_item = %(order_line_item)s,"
             " unit_price = %(unit_price)s"
-            " WHERE external_id = %(external_id)s and (OrderItemId = %(wish_order_id)s or sku = %(sku)s);"
+            " WHERE external_id = %(external_id)s and sku = %(sku)s;"
         )
 
         cursor.execute(sql, child)
@@ -105,6 +103,7 @@ def ProcessWishOrders(connection, sequence):
     for key, group in groupby(order_list, lambda item: item['Order']['transaction_id']):
         order_line_item = 1
         for order in group:
+            print order
             order_info = order['Order']
             shipping_detail = order_info['ShippingDetail'] # shipping detail contains the customer info
 
@@ -182,7 +181,7 @@ def GetOrdersToCheck():
 
     # we have the first result file retrieved, now to process the results. At the completion of the
     # process, the recursive routine will start.
-    host = os.environ.get("MYSQLDB_HOST")
+    host = os.environ.get("NEW_MYSQLDB_HOST")
     user = os.environ.get("MYSQLDB_USER")
     passwd = os.environ.get("MYSQLDB_PASSWD")
     connection = MySQLdb.Connect(host=host, user=user,
@@ -200,10 +199,11 @@ def main():
     global wishkey
 
     if len(sys.argv) == 2:
-        storefront = sys.argv[1]
-        if storefront == 'Old_Glory':
+        storefront = sys.argv[1].lower()
+        if storefront == 'old_glory':
             wishkey = os.environ.get("OG_WISH_KEY")
-        elif storefront == 'Animalworld':
+            print wishkey
+        elif storefront == 'animalworld':
             wishkey == os.envrion.get("AW_WISH_KEY")
         else:
             print 'invalid storefront'

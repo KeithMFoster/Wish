@@ -618,6 +618,8 @@ def main():
     # skus = ['120071']
 
     for sku in skus:
+        if not sku:
+            continue
         # get_product_data will return information from the database on the sku that wish requires.
         # it is a dictionary that will serve as the paramaters to create a product on wish. The keys
         # to the dictionary are named so that they can be posted to wish without any manipulation
